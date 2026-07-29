@@ -7,7 +7,7 @@ from datetime import date
 # ---------------------------------------------------------
 # DATABASE SETUP & INITIALIZATION
 # ---------------------------------------------------------
-DB_FILE = "motor_repairs.db"
+DB_FILE = "motor_repairs_v2.db"
 
 def get_connection():
     conn = sqlite3.connect(DB_FILE)
