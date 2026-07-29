@@ -21,6 +21,7 @@ def init_db():
             job_id TEXT PRIMARY KEY,
             entry_date TEXT,
             motor_serial TEXT,
+            motor_name TEXT,
             manufacturer TEXT,
             hp_rating REAL,
             frame_size TEXT,
@@ -61,9 +62,10 @@ with tabs[0]:
     with st.form("repair_form", clear_on_submit=True):
         col1, col2, col3 = st.columns(3)
         
-        with col1:
+     with col1:
             st.markdown("### 1. Motor Specs")
             job_id = st.text_input("Job ID*", placeholder="e.g., JOB-2026-001")
+            motor_name = st.text_input("Motor Name / Model", placeholder="e.g., High-Pressure Water Pump Motor")  # <--- ADDED THIS FIELD
             motor_serial = st.text_input("Serial Number", placeholder="e.g., SN-882910")
             manufacturer = st.selectbox("Manufacturer", ["Siemens", "ABB", "WEG", "GE", "TECO", "Other"])
             hp_rating = st.number_input("HP / kW Rating", min_value=0.1, value=10.0, step=0.5)
@@ -112,7 +114,7 @@ with tabs[0]:
                     cursor.execute('''
                         INSERT INTO repairs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (
-                        job_id, str(date.today()), motor_serial, manufacturer, hp_rating,
+                        job_id, str(date.today()), motor_serial,motor_name, manufacturer, hp_rating,
                         frame_size, symptom, failure_category, failure_mode, root_cause,
                         wire_gauge, turns_per_coil, repair_action, pre_megger, post_megger, post_amps
                     ))
