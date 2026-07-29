@@ -46,9 +46,9 @@ init_db()
 # ---------------------------------------------------------
 # STREAMLIT UI CONFIGURATION
 # ---------------------------------------------------------
-st.set_page_config(page_title="Motor Repair Knowledge Base", layout="wide", page_icon="⚙️")
+st.set_page_config(page_title="Al Jazeerah Al Hamra - Motor Repair Knowledge Base", layout="wide", page_icon="⚙️")
 
-st.title("⚙️ Motor Repair & Root-Cause Knowledge Base")
+st.title("⚙️ Al Jazeerah Al Hamra - Motor Repair & Root-Cause Knowledge Base")
 st.caption("Capture repair history, standardize fixes, and analyze failure modes across jobs.")
 
 tabs = st.tabs(["➕ Log New Repair", "🔍 Search Repair History", "📊 Failure Analytics"])
