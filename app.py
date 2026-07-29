@@ -20,8 +20,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS repairs (
             job_id TEXT PRIMARY KEY,
             entry_date TEXT,
-            motor_serial TEXT,
             motor_name TEXT,
+            motor_serial TEXT,
             manufacturer TEXT,
             hp_rating REAL,
             frame_size TEXT,
@@ -40,7 +40,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Initialize DB on start
+# Initialize DB on startup
 init_db()
 
 # ---------------------------------------------------------
@@ -62,10 +62,10 @@ with tabs[0]:
     with st.form("repair_form", clear_on_submit=True):
         col1, col2, col3 = st.columns(3)
         
-     with col1:
+        with col1:
             st.markdown("### 1. Motor Specs")
             job_id = st.text_input("Job ID*", placeholder="e.g., JOB-2026-001")
-            motor_name = st.text_input("Motor Name / Model", placeholder="e.g., High-Pressure Water Pump Motor")  # <--- ADDED THIS FIELD
+            motor_name = st.text_input("Motor Name / Application", placeholder="e.g., High-Pressure Water Pump Motor")
             motor_serial = st.text_input("Serial Number", placeholder="e.g., SN-882910")
             manufacturer = st.selectbox("Manufacturer", ["Siemens", "ABB", "WEG", "GE", "TECO", "Other"])
             hp_rating = st.number_input("HP / kW Rating", min_value=0.1, value=10.0, step=0.5)
@@ -112,14 +112,14 @@ with tabs[0]:
                 cursor = conn.cursor()
                 try:
                     cursor.execute('''
-                        INSERT INTO repairs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO repairs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (
-                        job_id, str(date.today()), motor_serial,motor_name, manufacturer, hp_rating,
+                        job_id, str(date.today()), motor_name, motor_serial, manufacturer, hp_rating,
                         frame_size, symptom, failure_category, failure_mode, root_cause,
                         wire_gauge, turns_per_coil, repair_action, pre_megger, post_megger, post_amps
                     ))
                     conn.commit()
-                    st.success(f"Successfully recorded Job {job_id} into database!")
+                    st.success(f"Successfully recorded Job '{job_id}' into database!")
                 except sqlite3.IntegrityError:
                     st.error(f"Job ID '{job_id}' already exists in the database.")
                 finally:
@@ -138,10 +138,11 @@ with tabs[1]:
     if df.empty:
         st.info("No repair records found yet. Log a job in the first tab to populate the database.")
     else:
-        search_term = st.text_input("🔎 Search by Symptom, Failure Mode, Frame Size, or Manufacturer", "")
+        search_term = st.text_input("🔎 Search by Motor Name, Symptom, Failure Mode, Frame Size, or Manufacturer", "")
         
         if search_term:
             filtered_df = df[
+                df['motor_name'].str.contains(search_term, case=False, na=False) |
                 df['symptom'].str.contains(search_term, case=False, na=False) |
                 df['failure_mode'].str.contains(search_term, case=False, na=False) |
                 df['frame_size'].str.contains(search_term, case=False, na=False) |
@@ -155,7 +156,7 @@ with tabs[1]:
         # Display summary table
         st.dataframe(
             filtered_df[[
-                'job_id', 'entry_date', 'manufacturer', 'hp_rating', 
+                'job_id', 'entry_date', 'motor_name', 'manufacturer', 'hp_rating', 
                 'frame_size', 'failure_category', 'failure_mode', 'wire_gauge', 'turns_per_coil'
             ]],
             use_container_width=True
@@ -171,7 +172,8 @@ with tabs[1]:
             
             c1, c2 = st.columns(2)
             with c1:
-                st.markdown(f"**Motor:** {row['manufacturer']} | {row['hp_rating']} HP | Frame {row['frame_size']}")
+                st.markdown(f"**Motor Name / App:** {row['motor_name']}")
+                st.markdown(f"**Specs:** {row['manufacturer']} | {row['hp_rating']} HP | Frame {row['frame_size']} | S/N: {row['motor_serial']}")
                 st.markdown(f"**Symptom:** {row['symptom']}")
                 st.markdown(f"**Failure Category:** {row['failure_category']} ({row['failure_mode']})")
                 st.markdown(f"**Root Cause:** {row['root_cause']}")
@@ -179,6 +181,7 @@ with tabs[1]:
                 st.markdown(f"**Rewind Specs:** {row['wire_gauge']} wire | {row['turns_per_coil']} turns/coil")
                 st.markdown(f"**Repair Action:** {row['repair_action']}")
                 st.markdown(f"**Megger Test:** {row['pre_megger_m_ohm']} MΩ (Pre) ➔ **{row['post_megger_m_ohm']} MΩ (Post)**")
+                st.markdown(f"**Post-Test Current:** {row['post_amps']} A")
 
 # ---------------------------------------------------------
 # TAB 3: FAILURE ANALYTICS
@@ -212,4 +215,4 @@ with tabs[2]:
                 title='Failure Modes by Manufacturer',
                 barmode='stack'
             )
-            st.plotly_chart(fig2, use_container_width=True) 
+            st.plotly_chart(fig2, use_container_width=True)
